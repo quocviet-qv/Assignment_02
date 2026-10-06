@@ -105,4 +105,30 @@ quizRouter.post('/:quizId/questions', async (req, res) => {
     } catch (err) { res.status(500).json(err); }
 });
 
+
+// API: Thêm một câu hỏi có sẵn vào bài Quiz (Đã sửa lỗi trùng link và sai tên biến)
+quizRouter.post('/:id/add-question', async (req, res) => {
+    try {
+        const quizId = req.params.id;
+        const questionId = req.body.questionId;
+        
+        const quiz = await Quiz.findById(quizId);
+        if (!quiz) {
+            return res.status(404).json({ message: 'Không tìm thấy bài Quiz' });
+        }
+        
+        // Kiểm tra xem câu hỏi này đã được thêm vào trước đó chưa (tránh trùng lặp)
+        if (!quiz.questions.includes(questionId)) {
+            quiz.questions.push(questionId); 
+            await quiz.save();               
+        }
+        
+        res.status(200).json(quiz);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Lỗi server khi thêm câu hỏi" });
+    }
+});
+
+
 module.exports = quizRouter;
