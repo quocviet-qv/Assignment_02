@@ -4,26 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Management</title>
-    <!-- Nhúng Bootstrap 5 theo đúng yêu cầu đề bài -->
+    <!-- Nhúng CSS Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
+    <!-- Thanh điều hướng Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-    <div class="container">
-        <a class="navbar-brand" href="#">SimpleQuiz App</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="/ui/quizzes">Quizzes Management</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/ui/questions">Questions Management</a>
-                </li>
-            </ul>
+        <div class="container">
+            <a class="navbar-brand" href="#">SimpleQuiz App</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link active" href="/ui/quizzes">Quizzes Management</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/ui/questions">Questions Management</a></li>
+                </ul>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
+
     <div class="container mt-5">
+        
+        <!-- ĐOẠN CODE THÔNG BÁO "ĐÃ THÊM BÀI QUIZ THÀNH CÔNG" (Tự tắt sau 1 giây) -->
+        <% if (typeof showCreated !== 'undefined' && showCreated) { %>
+            <div id="createAlert" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <strong>Thành công!</strong> Đã thêm bài Quiz mới thành công.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <script>
+                setTimeout(function() {
+                    var alertBox = document.getElementById('createAlert');
+                    if (alertBox) {
+                        alertBox.classList.remove('show');
+                        setTimeout(function() { alertBox.remove(); }, 150);
+                    }
+                }, 1000); // 1000ms = 1 giây
+            </script>
+        <% } %>
+
+        <!-- ĐOẠN CODE THÔNG BÁO "ĐÃ XÓA BÀI QUIZ THÀNH CÔNG" (Tự tắt sau 1 giây) -->
+        <% if (typeof showDeleted !== 'undefined' && showDeleted) { %>
+            <div id="deleteAlert" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <strong>Thành công!</strong> Đã xóa bài quiz thành công.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <script>
+                setTimeout(function() {
+                    var alertBox = document.getElementById('deleteAlert');
+                    if (alertBox) {
+                        alertBox.classList.remove('show');
+                        setTimeout(function() { alertBox.remove(); }, 150);
+                    }
+                }, 1000); // 1000ms = 1 giây
+            </script>
+        <% } %>
+
+        <!-- ĐOẠN CODE THÔNG BÁO "ĐÃ CHỈNH SỬA THÀNH CÔNG" (Tự tắt sau 1 giây) -->
+        <% if (typeof showUpdated !== 'undefined' && showUpdated) { %>
+            <div id="updateAlert" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                <strong>Thành công!</strong> Đã chỉnh sửa bài Quiz thành công.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <script>
+                setTimeout(function() {
+                    var alertBox = document.getElementById('updateAlert');
+                    if (alertBox) {
+                        alertBox.classList.remove('show');
+                        setTimeout(function() { alertBox.remove(); }, 150);
+                    }
+                }, 1000); // 1000ms = 1 giây
+            </script>
+        <% } %>
+
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1>Quizzes</h1>
             <a href="/ui/quizzes/create" class="btn btn-primary">Create New Quiz</a>
@@ -31,7 +81,6 @@
         
         <!-- Danh sách các bài Quiz -->
         <div class="list-group shadow-sm">
-            <!-- Vòng lặp EJS: duyệt qua mảng dữ liệu lấy từ API -->
             <% quizzes.forEach(function(quiz) { %>
                 <div class="list-group-item d-flex justify-content-between align-items-center p-3">
                     <div>
@@ -42,10 +91,32 @@
                         <a href="/ui/quizzes/<%= quiz._id %>" class="btn btn-sm btn-info text-white">Details</a>
                         <a href="/ui/quizzes/<%= quiz._id %>/edit" class="btn btn-sm btn-warning text-dark">Edit</a>
                         
-                        <!-- Form này tận dụng method-override để gửi lệnh xóa (DELETE) -->
-                        <form action="/ui/quizzes/<%= quiz._id %>?_method=DELETE" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc muốn xóa bài Quiz này?')">Delete</button>
-                        </form>
+                        <!-- NÚT MỞ MODAL XÓA -->
+                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal<%= quiz._id %>">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+
+                <!-- HỘP THOẠI MODAL XÓA DÀNH RIÊNG CHO TỪNG QUIZ -->
+                <div class="modal fade" id="deleteModal<%= quiz._id %>" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title text-danger" id="deleteModalLabel">Xác nhận xóa</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                Bạn có chắc chắn muốn xóa bài Quiz <strong>"<%= quiz.title %>"</strong> không? Hành động này không thể hoàn tác.
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                <!-- Form thực hiện xóa -->
+                                <form action="/ui/quizzes/<%= quiz._id %>?_method=DELETE" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-danger">Vâng, Xóa Ngay</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             <% }); %>
@@ -57,5 +128,8 @@
             <% } %>
         </div>
     </div>
+
+    <!-- Bắt buộc nhúng JS của Bootstrap để Hộp thoại Modal có thể bật lên -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

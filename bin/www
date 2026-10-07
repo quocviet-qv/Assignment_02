@@ -87,5 +87,7 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
-  console.log('Server đang chạy thành công ở cổng ' + addr.port + '!');
+  
+  // Đã sửa lại dòng này để in ra đường link có thể click
+  console.log('Server đang chạy tại: http://localhost:' + addr.port + '/ui/quizzes');
 }

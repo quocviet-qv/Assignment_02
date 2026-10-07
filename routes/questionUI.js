@@ -6,7 +6,18 @@ const axiosInstance = require('../axiosConfig');
 router.get('/', async (req, res) => {
     try {
         const response = await axiosInstance.get('/questions');
-        res.render('questions/list', { questions: response.data });
+        
+        // BẮT CÁC TÍN HIỆU TỪ URL
+        const isCreated = req.query.created === 'true';
+        const isDeleted = req.query.deleted === 'true';
+        const isUpdated = req.query.updated === 'true'; // Thêm tín hiệu chỉnh sửa
+
+        res.render('questions/list', { 
+            questions: response.data,
+            showCreated: isCreated,
+            showDeleted: isDeleted,
+            showUpdated: isUpdated // Gửi biến này ra giao diện EJS
+        });
     } catch (err) {
         console.error("Lỗi tải câu hỏi:", err.message);
         res.status(500).send('Lỗi Server (UI)');
@@ -21,9 +32,10 @@ router.get('/create', (req, res) => {
 // 3. Xử lý lưu câu hỏi khi submit form
 router.post('/', async (req, res) => {
     try {
-        // Tùy thuộc vào code API bài 1 của bạn, dữ liệu từ form sẽ được gửi thẳng lên API
         await axiosInstance.post('/questions', req.body);
-        res.redirect('/ui/questions');
+        
+        // TẠO XONG THÌ QUAY VỀ DANH SÁCH VÀ BẬT TÍN HIỆU created=true
+        res.redirect('/ui/questions?created=true');
     } catch (err) {
         console.error("Lỗi tạo câu hỏi:", err.message);
         res.status(500).send('Lỗi khi tạo câu hỏi');
@@ -46,7 +58,9 @@ router.get('/:id/edit', async (req, res) => {
 router.put('/:id', async (req, res) => {
     try {
         await axiosInstance.put(`/questions/${req.params.id}`, req.body);
-        res.redirect('/ui/questions');
+        
+        // SỬA XONG THÌ QUAY VỀ DANH SÁCH VÀ BẬT TÍN HIỆU updated=true
+        res.redirect('/ui/questions?updated=true');
     } catch (err) {
         console.error("Lỗi cập nhật câu hỏi:", err.message);
         res.status(500).send('Lỗi khi cập nhật câu hỏi');
@@ -57,7 +71,9 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         await axiosInstance.delete(`/questions/${req.params.id}`);
-        res.redirect('/ui/questions');
+        
+        // XÓA XONG THÌ QUAY VỀ KÈM TÍN HIỆU deleted=true
+        res.redirect('/ui/questions?deleted=true');
     } catch (err) {
         console.error("Lỗi xóa câu hỏi:", err.message);
         res.status(500).send('Lỗi khi xóa câu hỏi');

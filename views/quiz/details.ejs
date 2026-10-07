@@ -11,7 +11,30 @@
             <h1 class="text-primary mb-3"><%= quiz.title %></h1>
             <p class="fs-5 text-muted"><%= quiz.description %></p>
             <hr>
-            
+            <!-- CODE THÔNG BÁO THÀNH CÔNG -->
+            <!-- CODE THÔNG BÁO THÀNH CÔNG -->
+            <% if (typeof showSuccess !== 'undefined' && showSuccess) { %>
+                <!-- Thêm id="successAlert" để JavaScript có thể tìm thấy -->
+                <div id="successAlert" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                    <strong>Thành công!</strong> Đã thêm câu hỏi vào bài Quiz.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <!-- JavaScript tự động tắt thông báo -->
+                <script>
+                    setTimeout(function() {
+                        var alertBox = document.getElementById('successAlert');
+                        if (alertBox) {
+                            // Gỡ class 'show' để kích hoạt hiệu ứng mờ dần của Bootstrap
+                            alertBox.classList.remove('show');
+                            // Đợi 150ms cho hiệu ứng mờ chạy xong rồi xóa hẳn thẻ khỏi giao diện
+                            setTimeout(function() {
+                                alertBox.remove();
+                            }, 150);
+                        }
+                    }, 1000); // 1000 mili-giây = 1 giây
+                </script>
+            <% } %>
             <!-- HIỂN THỊ DANH SÁCH CÂU HỎI TRONG QUIZ -->
             <div class="mt-4 mb-4">
                 <h4>Questions in this Quiz:</h4>
