@@ -80,5 +80,16 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+// Giao diện: Xem chi tiết một Câu hỏi
+router.get('/:id', async (req, res) => {
+    try {
+        const response = await axiosInstance.get(`/questions/${req.params.id}`);
+        res.render('questions/details', { question: response.data });
+    } catch (err) {
+        console.error("Lỗi khi tải chi tiết câu hỏi:", err.message);
+        res.status(500).send('Lỗi khi tải chi tiết câu hỏi');
+    }
+});
+
 
 module.exports = router;
