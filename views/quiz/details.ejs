@@ -1,114 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Details</title>
-    <!-- Nhúng CSS Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-    <!-- Thanh Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="#">Question Bank Management Application</a>
-            <div class="collapse navbar-collapse">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link active" href="/ui/quizzes">Quizzes Management</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/ui/questions">Questions Management</a></li>
-                </ul>
-            </div>
+<div class="container mt-5">
+    <!-- THÔNG BÁO TẠO THÀNH CÔNG -->
+    <% if (typeof showSuccess !== 'undefined' && showSuccess) { %>
+        <div id="successAlert" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <strong>Thành công!</strong> Đã thêm câu hỏi vào bài Quiz.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    </nav>
+        <script>
+            setTimeout(function() {
+                var alertBox = document.getElementById('successAlert');
+                if (alertBox) {
+                    alertBox.classList.remove('show');
+                    setTimeout(function() { alertBox.remove(); }, 150);
+                }
+            }, 1000);
+        </script>
+    <% } %>
 
-    <div class="container mt-5">
-        <!-- THÔNG BÁO TẠO THÀNH CÔNG -->
-        <% if (typeof showSuccess !== 'undefined' && showSuccess) { %>
-            <div id="successAlert" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-                <strong>Thành công!</strong> Đã thêm câu hỏi vào bài Quiz.
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <!-- THÔNG TIN BÀI QUIZ -->
+    <h1 class="text-primary fw-bold mb-3"><%= quiz.title %></h1>
+    <p class="text-muted fs-5"><%= quiz.description %></p>
+    <hr class="mb-4">
+    
+    <!-- DANH SÁCH CÂU HỎI TRONG QUIZ -->
+    <h4 class="mb-3 fw-bold">Questions in this Quiz:</h4>
+    <div class="mb-4">
+        <% if (quiz.questions && quiz.questions.length > 0) { %>
+            <div class="list-group shadow-sm">
+                <% quiz.questions.forEach(function(q) { %>
+                    <div class="list-group-item p-3 text-dark">
+                        <%= q.text || q.questionText || 'Câu hỏi chưa có nội dung' %>
+                    </div>
+                <% }); %>
             </div>
-            <script>
-                setTimeout(function() {
-                    var alertBox = document.getElementById('successAlert');
-                    if (alertBox) {
-                        alertBox.classList.remove('show');
-                        setTimeout(function() { alertBox.remove(); }, 150);
-                    }
-                }, 1000);
-            </script>
+        <% } else { %>
+            <div class="alert alert-secondary">Chưa có câu hỏi nào trong Quiz này.</div>
         <% } %>
+    </div>
 
-        <!-- THÔNG TIN BÀI QUIZ -->
-        <h1 class="text-primary fw-bold mb-3"><%= quiz.title %></h1>
-        <p class="text-muted fs-5"><%= quiz.description %></p>
-        <hr class="mb-4">
-        
-        <!-- DANH SÁCH CÂU HỎI TRONG QUIZ -->
-        <h4 class="mb-3 fw-bold">Questions in this Quiz:</h4>
-        <div class="mb-4">
-            <% if (quiz.questions && quiz.questions.length > 0) { %>
-                <div class="list-group shadow-sm">
-                    <% quiz.questions.forEach(function(q) { %>
-                        <div class="list-group-item p-3 text-dark">
-                            <%= q.text || q.questionText || 'Câu hỏi chưa có nội dung' %>
-                        </div>
+    <!-- KHU VỰC THÊM CÂU HỎI VÀ TÌM KIẾM -->
+    <div class="card border-primary mb-4 shadow-sm">
+        <div class="card-body p-4">
+            <h5 class="card-title text-primary mb-3">Add an existing Question to this Quiz</h5>
+            
+            <!-- Ô TÌM KIẾM MỚI -->
+            <input type="text" id="searchDropdown" class="form-control mb-3 border-info" placeholder="🔍 Gõ từ khóa để lọc nhanh câu hỏi..." onkeyup="filterDropdown()">
+
+            <!-- Form chọn câu hỏi -->
+            <form action="/ui/quizzes/<%= quiz._id %>/add-question" method="POST" class="d-flex gap-2">
+                <select name="questionId" id="questionSelect" class="form-select" required>
+                    <option value="" disabled selected>-- Chọn câu hỏi có sẵn từ kho --</option>
+                    <% allQuestions.forEach(function(question) { %>
+                        <option value="<%= question._id %>"><%= question.text || question.questionText %></option>
                     <% }); %>
-                </div>
-            <% } else { %>
-                <div class="alert alert-secondary">Chưa có câu hỏi nào trong Quiz này.</div>
-            <% } %>
-        </div>
-
-        <!-- KHU VỰC THÊM CÂU HỎI VÀ TÌM KIẾM -->
-        <div class="card border-primary mb-4 shadow-sm">
-            <div class="card-body p-4">
-                <h5 class="card-title text-primary mb-3">Add an existing Question to this Quiz</h5>
-                
-                <!-- Ô TÌM KIẾM MỚI -->
-                <input type="text" id="searchDropdown" class="form-control mb-3 border-info" placeholder="🔍 Gõ từ khóa để lọc nhanh câu hỏi..." onkeyup="filterDropdown()">
-
-                <!-- Form chọn câu hỏi -->
-                <form action="/ui/quizzes/<%= quiz._id %>/add-question" method="POST" class="d-flex gap-2">
-                    <select name="questionId" id="questionSelect" class="form-select" required>
-                        <option value="" disabled selected>-- Chọn câu hỏi có sẵn từ kho --</option>
-                        <% allQuestions.forEach(function(question) { %>
-                            <option value="<%= question._id %>"><%= question.text || question.questionText %></option>
-                        <% }); %>
-                    </select>
-                    <button type="submit" class="btn btn-success px-4">Add</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- CÁC NÚT ĐIỀU HƯỚNG -->
-        <div class="mb-5">
-            <a href="/ui/quizzes" class="btn btn-secondary">Back to List</a>
-            <a href="/ui/quizzes/<%= quiz._id %>/edit" class="btn btn-warning text-dark">Edit Quiz</a>
+                </select>
+                <button type="submit" class="btn btn-success px-4">Add</button>
+            </form>
         </div>
     </div>
 
-    <!-- SCRIPT CHỨC NĂNG LỌC DROPDOWN SIÊU MƯỢT -->
-    <script>
-        // Lưu trữ bản sao của tất cả các lựa chọn gốc khi trang vừa tải
-        var selectElement = document.getElementById('questionSelect');
-        var originalOptions = Array.from(selectElement.options).slice(1); // Bỏ qua dòng placeholder đầu tiên
+    <!-- CÁC NÚT ĐIỀU HƯỚNG -->
+    <div class="mb-5">
+        <a href="/ui/quizzes" class="btn btn-secondary">Back to List</a>
+        <a href="/ui/quizzes/<%= quiz._id %>/edit" class="btn btn-warning text-dark">Edit Quiz</a>
+    </div>
+</div>
 
-        function filterDropdown() {
-            var keyword = document.getElementById('searchDropdown').value.toLowerCase();
-            
-            // 1. Dọn dẹp menu thả xuống chỉ chừa lại dòng placeholder "-- Chọn câu hỏi..."
-            selectElement.innerHTML = '<option value="" disabled selected>-- Chọn câu hỏi có sẵn từ kho --</option>';
-            
-            // 2. Lọc và gắn lại các câu hỏi khớp với từ khóa
-            originalOptions.forEach(function(option) {
-                if (option.text.toLowerCase().includes(keyword)) {
-                    selectElement.appendChild(option.cloneNode(true));
-                }
-            });
-        }
-    </script>
+<!-- SCRIPT CHỨC NĂNG LỌC DROPDOWN -->
+<script>
+    var selectElement = document.getElementById('questionSelect');
+    var originalOptions = Array.from(selectElement.options).slice(1);
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    function filterDropdown() {
+        var keyword = document.getElementById('searchDropdown').value.toLowerCase();
+        
+        selectElement.innerHTML = '<option value="" disabled selected>-- Chọn câu hỏi có sẵn từ kho --</option>';
+        
+        originalOptions.forEach(function(option) {
+            if (option.text.toLowerCase().includes(keyword)) {
+                selectElement.appendChild(option.cloneNode(true));
+            }
+        });
+    }
+</script>

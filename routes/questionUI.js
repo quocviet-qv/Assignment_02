@@ -1,22 +1,29 @@
 const express = require('express');
 const router = express.Router();
 const axiosInstance = require('../axiosConfig');
+const ejs = require('ejs');   // Thêm EJS
+const path = require('path'); // Thêm Path
 
 // 1. Hiển thị danh sách câu hỏi
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
     try {
         const response = await axiosInstance.get('/questions');
         
         // BẮT CÁC TÍN HIỆU TỪ URL
         const isCreated = req.query.created === 'true';
         const isDeleted = req.query.deleted === 'true';
-        const isUpdated = req.query.updated === 'true'; // Thêm tín hiệu chỉnh sửa
+        const isUpdated = req.query.updated === 'true'; 
 
-        res.render('questions/list', { 
+        // KẾT HỢP: Dịch file EJS thành HTML rồi nhét vào main.hbs
+        const viewsPath = path.join(__dirname, '../views/questions/list.ejs');
+        ejs.renderFile(viewsPath, { 
             questions: response.data,
             showCreated: isCreated,
             showDeleted: isDeleted,
-            showUpdated: isUpdated // Gửi biến này ra giao diện EJS
+            showUpdated: isUpdated 
+        }, (err, htmlString) => {
+            if (err) return next(err);
+            res.render('layouts/main.hbs', { body: htmlString });
         });
     } catch (err) {
         console.error("Lỗi tải câu hỏi:", err.message);
@@ -25,16 +32,18 @@ router.get('/', async (req, res) => {
 });
 
 // 2. Hiển thị Form tạo câu hỏi mới
-router.get('/create', (req, res) => {
-    res.render('questions/create');
+router.get('/create', (req, res, next) => {
+    const viewsPath = path.join(__dirname, '../views/questions/create.ejs');
+    ejs.renderFile(viewsPath, {}, (err, htmlString) => {
+        if (err) return next(err);
+        res.render('layouts/main.hbs', { body: htmlString });
+    });
 });
 
 // 3. Xử lý lưu câu hỏi khi submit form
 router.post('/', async (req, res) => {
     try {
         await axiosInstance.post('/questions', req.body);
-        
-        // TẠO XONG THÌ QUAY VỀ DANH SÁCH VÀ BẬT TÍN HIỆU created=true
         res.redirect('/ui/questions?created=true');
     } catch (err) {
         console.error("Lỗi tạo câu hỏi:", err.message);
@@ -42,12 +51,16 @@ router.post('/', async (req, res) => {
     }
 });
 
-
 // 4. Hiển thị form Edit Question (Kèm dữ liệu cũ)
-router.get('/:id/edit', async (req, res) => {
+router.get('/:id/edit', async (req, res, next) => {
     try {
         const response = await axiosInstance.get(`/questions/${req.params.id}`);
-        res.render('questions/edit', { question: response.data });
+        
+        const viewsPath = path.join(__dirname, '../views/questions/edit.ejs');
+        ejs.renderFile(viewsPath, { question: response.data }, (err, htmlString) => {
+            if (err) return next(err);
+            res.render('layouts/main.hbs', { body: htmlString });
+        });
     } catch (err) {
         console.error("Lỗi tải trang sửa câu hỏi:", err.message);
         res.status(500).send('Lỗi khi tải trang chỉnh sửa');
@@ -58,8 +71,6 @@ router.get('/:id/edit', async (req, res) => {
 router.put('/:id', async (req, res) => {
     try {
         await axiosInstance.put(`/questions/${req.params.id}`, req.body);
-        
-        // SỬA XONG THÌ QUAY VỀ DANH SÁCH VÀ BẬT TÍN HIỆU updated=true
         res.redirect('/ui/questions?updated=true');
     } catch (err) {
         console.error("Lỗi cập nhật câu hỏi:", err.message);
@@ -71,8 +82,6 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         await axiosInstance.delete(`/questions/${req.params.id}`);
-        
-        // XÓA XONG THÌ QUAY VỀ KÈM TÍN HIỆU deleted=true
         res.redirect('/ui/questions?deleted=true');
     } catch (err) {
         console.error("Lỗi xóa câu hỏi:", err.message);
@@ -80,16 +89,20 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-// Giao diện: Xem chi tiết một Câu hỏi
-router.get('/:id', async (req, res) => {
+// 7. Giao diện: Xem chi tiết một Câu hỏi
+router.get('/:id', async (req, res, next) => {
     try {
         const response = await axiosInstance.get(`/questions/${req.params.id}`);
-        res.render('questions/details', { question: response.data });
+        
+        const viewsPath = path.join(__dirname, '../views/questions/details.ejs');
+        ejs.renderFile(viewsPath, { question: response.data }, (err, htmlString) => {
+            if (err) return next(err);
+            res.render('layouts/main.hbs', { body: htmlString });
+        });
     } catch (err) {
         console.error("Lỗi khi tải chi tiết câu hỏi:", err.message);
         res.status(500).send('Lỗi khi tải chi tiết câu hỏi');
     }
 });
-
 
 module.exports = router;
