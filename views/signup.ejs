@@ -1,0 +1,39 @@
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow border-success">
+                <div class="card-header bg-success text-white text-center">
+                    <h3 class="mb-0">Đăng Ký Tài Khoản</h3>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Báo lỗi nếu đăng ký trùng user -->
+                    <% if (typeof error !== 'undefined' && error) { %>
+                        <div class="alert alert-danger">Đăng ký thất bại! Tên đăng nhập này có thể đã tồn tại.</div>
+                    <% } %>
+
+                    <form action="/ui/signup" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên đăng nhập (Username)</label>
+                            <input type="text" name="username" class="form-control" required placeholder="Nhập tên đăng nhập...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Mật khẩu (Password)</label>
+                            <input type="password" name="password" class="form-control" required placeholder="Nhập mật khẩu...">
+                        </div>
+                        
+                        <!-- Checkbox tạo Admin (Dành riêng cho test Assignment) -->
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" class="form-check-input" name="admin" value="true" id="adminCheck">
+                            <label class="form-check-label text-muted" for="adminCheck">Đăng ký tài khoản này với quyền Admin</label>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">Đăng Ký Ngay</button>
+                            <a href="/ui/login" class="btn btn-link text-decoration-none">Đã có tài khoản? Quay lại đăng nhập</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

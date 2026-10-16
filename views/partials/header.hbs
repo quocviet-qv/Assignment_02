@@ -1,11 +1,22 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
     <div class="container">
-        <a class="navbar-brand" href="#">Question Bank Management 123</a>
+        <a class="navbar-brand" href="#">Question Bank Management</a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link" href="/ui/quizzes">Quizzes Management</a></li>
                 <li class="nav-item"><a class="nav-link" href="/ui/questions">Questions Management</a></li>
             </ul>
+            
+           <!-- NÚT ĐĂNG NHẬP / ĐĂNG KÝ / ĐĂNG XUẤT -->
+            <div class="d-flex ms-auto gap-2">
+                {{#if isLoggedIn}}
+                    <a href="/ui/logout" class="btn btn-outline-danger fw-bold">Đăng xuất</a>
+                {{else}}
+                    <a href="/ui/login" class="btn btn-success fw-bold">Đăng nhập</a>
+                    <a href="/ui/signup" class="btn btn-outline-light fw-bold">Đăng ký</a>
+                {{/if}}
+            </div>
+
         </div>
     </div>
 </nav>

@@ -1,23 +1,21 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const Question = require('../models/question');
+const authenticate = require('../authenticate'); // Nhúng file bảo mật
 
 const questionRouter = express.Router();
 questionRouter.use(bodyParser.json());
 
+// ==========================================
+// CÁC API MỞ (AI CŨNG CÓ THỂ XEM - GET)
+// ==========================================
+
 // [API 6] GET /question - Lấy danh sách tất cả câu hỏi
 questionRouter.get('/', async (req, res) => {
     try {
-        const questions = await Question.find({});
+      // Thêm .populate('author', 'username') để lấy tên người tạo
+        const questions = await Question.find({}).populate('author', 'username');
         res.status(200).json(questions);
-    } catch (err) { res.status(500).json(err); }
-});
-
-// [API 7] POST /question - Tạo 1 câu hỏi lẻ
-questionRouter.post('/', async (req, res) => {
-    try {
-        const question = await Question.create(req.body);
-        res.status(201).json(question);
     } catch (err) { res.status(500).json(err); }
 });
 
@@ -29,8 +27,23 @@ questionRouter.get('/:questionId', async (req, res) => {
     } catch (err) { res.status(500).json(err); }
 });
 
-// [API 9] PUT /question/:questionId - Cập nhật 1 câu hỏi theo ID
-questionRouter.put('/:questionId', async (req, res) => {
+// ==========================================
+// CÁC API BẢO MẬT (POST, PUT, DELETE)
+// ==========================================
+
+// [API 7] POST /question - Tạo 1 câu hỏi lẻ (Chỉ cần đăng nhập)
+questionRouter.post('/', authenticate.verifyUser, async (req, res) => {
+    try {
+        // BẮT BUỘC: Gán người tạo câu hỏi chính là user đang đăng nhập
+        req.body.author = req.user._id; 
+        
+        const question = await Question.create(req.body);
+        res.status(201).json(question);
+    } catch (err) { res.status(500).json(err); }
+});
+
+// [API 9] PUT /question/:questionId - Cập nhật 1 câu hỏi theo ID (Chỉ Tác giả mới được sửa)
+questionRouter.put('/:questionId', authenticate.verifyUser, authenticate.verifyAuthor, async (req, res) => {
     try {
         const question = await Question.findByIdAndUpdate(
             req.params.questionId,
@@ -41,8 +54,8 @@ questionRouter.put('/:questionId', async (req, res) => {
     } catch (err) { res.status(500).json(err); }
 });
 
-/// [API 10] DELETE /question/:questionId - Xóa 1 câu hỏi theo ID có thông báo
-questionRouter.delete('/:questionId', async (req, res) => {
+/// [API 10] DELETE /question/:questionId - Xóa 1 câu hỏi theo ID (Chỉ Tác giả mới được xóa)
+questionRouter.delete('/:questionId', authenticate.verifyUser, authenticate.verifyAuthor, async (req, res) => {
     try {
         const deletedQuestion = await Question.findByIdAndDelete(req.params.questionId);
         

@@ -4,7 +4,7 @@ const axiosInstance = require('../axiosConfig');
 const ejs = require('ejs');   // Thêm EJS
 const path = require('path'); // Thêm Path
 
-// 1. Hiển thị danh sách câu hỏi
+// 1. Hiển thị danh sách câu hỏi (GET - Mở cho tất cả)
 router.get('/', async (req, res, next) => {
     try {
         const response = await axiosInstance.get('/questions');
@@ -40,14 +40,19 @@ router.get('/create', (req, res, next) => {
     });
 });
 
-// 3. Xử lý lưu câu hỏi khi submit form
+// 3. Xử lý lưu câu hỏi khi submit form (POST - Cần Token)
 router.post('/', async (req, res) => {
     try {
-        await axiosInstance.post('/questions', req.body);
+        // Lấy token từ Cookie
+        const token = req.cookies.token;
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
+        // Gửi request kèm thẻ thông hành (config)
+        await axiosInstance.post('/questions', req.body, config);
         res.redirect('/ui/questions?created=true');
     } catch (err) {
         console.error("Lỗi tạo câu hỏi:", err.message);
-        res.status(500).send('Lỗi khi tạo câu hỏi');
+        res.status(401).send('<h1>Lỗi: Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn!</h1><a href="/ui/login">Quay lại đăng nhập</a>');
     }
 });
 
@@ -67,25 +72,32 @@ router.get('/:id/edit', async (req, res, next) => {
     }
 });
 
-// 5. Xử lý Cập nhật Question (Lệnh PUT)
+// 5. Xử lý Cập nhật Question (Lệnh PUT - Cần Token & Quyền tác giả)
 router.put('/:id', async (req, res) => {
     try {
-        await axiosInstance.put(`/questions/${req.params.id}`, req.body);
+        const token = req.cookies.token;
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
+        await axiosInstance.put(`/questions/${req.params.id}`, req.body, config);
         res.redirect('/ui/questions?updated=true');
     } catch (err) {
         console.error("Lỗi cập nhật câu hỏi:", err.message);
-        res.status(500).send('Lỗi khi cập nhật câu hỏi');
+        res.status(403).send('<h1>Lỗi 403: Bạn không phải là tác giả của câu hỏi này!</h1><a href="/ui/questions">Quay lại danh sách</a>');
     }
 });
 
-// 6. Xử lý Xóa Question (Lệnh DELETE)
+// 6. Xử lý Xóa Question (Lệnh DELETE - Cần Token & Quyền tác giả)
 router.delete('/:id', async (req, res) => {
     try {
-        await axiosInstance.delete(`/questions/${req.params.id}`);
+        const token = req.cookies.token;
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
+        // Lưu ý: Lệnh delete truyền config ở tham số thứ 2
+        await axiosInstance.delete(`/questions/${req.params.id}`, config);
         res.redirect('/ui/questions?deleted=true');
     } catch (err) {
         console.error("Lỗi xóa câu hỏi:", err.message);
-        res.status(500).send('Lỗi khi xóa câu hỏi');
+        res.status(403).send('<h1>Lỗi 403: Bạn không có quyền xóa câu hỏi này!</h1><a href="/ui/questions">Quay lại danh sách</a>');
     }
 });
 

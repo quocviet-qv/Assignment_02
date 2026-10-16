@@ -12,9 +12,10 @@ const hbs = require('hbs');
 require('dotenv').config();
 const mongoose = require('mongoose');
 
-// Các Router API (Lõi của Assignment 1)
+// Các Router API (Lõi của Assignment)
 const quizRouter = require('./routes/quizRouter');
 const questionRouter = require('./routes/questionRouter');
+const usersRouter = require('./routes/users'); // 1. BỔ SUNG ROUTER USERS TẠI ĐÂY
 
 var app = express();
 
@@ -29,7 +30,7 @@ app.engine('hbs', hbs.__express); // Khai báo hỗ trợ Handlebars
 app.engine('ejs', require('ejs').__express); // Khai báo hỗ trợ EJS
 app.set('view engine', 'ejs'); // Vẫn để EJS làm mặc định để biên dịch dữ liệu
 
-// ĐĂNG KÝ THƯ MỤC PARTIALS CHO HANDLEBARS (CHÌA KHÓA KẾT HỢP NẰM Ở ĐÂY)
+// ĐĂNG KÝ THƯ MỤC PARTIALS CHO HANDLEBARS 
 hbs.registerPartials(path.join(__dirname, 'views', 'partials'));
 
 app.use(logger('dev'));
@@ -45,6 +46,18 @@ app.use(methodOverride('_method'));
 app.use('/quizzes', quizRouter);
 app.use('/question', questionRouter);
 app.use('/questions', questionRouter);
+app.use('/users', usersRouter); // 2. KÍCH HOẠT ĐƯỜNG DẪN API /users Ở ĐÂY
+
+// --- BẮT ĐẦU PHẦN THÊM MỚI ---
+// Đọc token từ Cookie và truyền biến "isLoggedIn" ra toàn bộ giao diện HBS
+app.use(function(req, res, next) {
+    res.locals.isLoggedIn = req.cookies.token ? true : false;
+    next();
+});
+
+const authUIRouter = require('./routes/authUI');
+app.use('/ui', authUIRouter);
+// --- KẾT THÚC PHẦN THÊM MỚI ---
 
 // 4. KHAI BÁO CÁC ROUTER GIAO DIỆN (UI)
 const quizUIRouter = require('./routes/quizUI');

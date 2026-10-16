@@ -1,6 +1,4 @@
-
-
-    <div class="container mt-5">
+<div class="container mt-5">
         
         <!-- ĐOẠN CODE THÔNG BÁO "ĐÃ THÊM BÀI QUIZ THÀNH CÔNG" (Tự tắt sau 1 giây) -->
         <% if (typeof showCreated !== 'undefined' && showCreated) { %>
@@ -65,6 +63,14 @@
                     <div>
                         <h5 class="mb-1 text-primary"><%= quiz.title %></h5>
                         <p class="mb-1 text-muted"><%= quiz.description %></p>
+                        
+                        <!-- BỔ SUNG: HIỂN THỊ TÊN TÁC GIẢ -->
+                        <small class="text-muted d-block mt-1">
+                            <strong>Tác giả:</strong> 
+                            <span class="badge bg-info text-dark">
+                                <%= quiz.author ? quiz.author.username : 'Ẩn danh' %>
+                            </span>
+                        </small>
                     </div>
                     <div>
                         <a href="/ui/quizzes/<%= quiz._id %>" class="btn btn-sm btn-info text-white">Details</a>

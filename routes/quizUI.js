@@ -41,14 +41,17 @@ router.get('/create', (req, res, next) => {
     });
 });
 
-// 3. Xử lý: Lưu Quiz mới vào Database
+// 3. Xử lý: Lưu Quiz mới vào Database (Cần Token Admin)
 router.post('/', async (req, res) => {
     try {
-        await axiosInstance.post('/quizzes', req.body);
+        const token = req.cookies.token;
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
+        await axiosInstance.post('/quizzes', req.body, config);
         res.redirect('/ui/quizzes?created=true');
     } catch (err) {
         console.error("Lỗi khi tạo Quiz:", err.message);
-        res.status(500).send('Lỗi khi tạo mới Quiz');
+        res.status(403).send('<h1>Lỗi 403: Bạn không có quyền Admin để tạo Quiz!</h1><a href="/ui/quizzes">Quay lại</a>');
     }
 });
 
@@ -72,17 +75,35 @@ router.get('/:id/edit', async (req, res, next) => {
     }
 });
 
-// 5. Xử lý: Thêm câu hỏi vào bài Quiz 
+// 5. Xử lý: Thêm NHIỀU câu hỏi vào bài Quiz (Cần Token Admin)
 router.post('/:id/add-question', async (req, res) => {
     try {
         const quizId = req.params.id;
-        const questionId = req.body.questionId;
+        // Nhận mảng các câu hỏi được chọn từ form (checkbox)
+        let questionIds = req.body.questionIds; 
         
-        await axiosInstance.post(`/quizzes/${quizId}/add-question`, { questionId });
+        // Nếu người dùng không chọn câu nào mà lỡ bấm Submit thì quay lại
+        if (!questionIds) {
+            return res.redirect(`/ui/quizzes/${quizId}`);
+        }
+
+        // Nếu người dùng chỉ chọn 1 checkbox, dữ liệu sẽ là String -> Chuyển thành Mảng để dễ dùng vòng lặp
+        if (!Array.isArray(questionIds)) {
+            questionIds = [questionIds];
+        }
+        
+        const token = req.cookies.token;
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
+        // Lặp qua từng câu hỏi được tick và tự động gửi xuống Backend
+        for (let qId of questionIds) {
+            await axiosInstance.post(`/quizzes/${quizId}/add-question`, { questionId: qId }, config);
+        }
+
         res.redirect(`/ui/quizzes/${quizId}?success=true`);
     } catch (err) {
         console.error("Lỗi thêm câu hỏi vào quiz:", err.message);
-        res.status(500).send('Lỗi khi liên kết câu hỏi.');
+        res.status(403).send('<h1>Lỗi 403: Bạn không có quyền Admin!</h1><a href="/ui/quizzes">Quay lại</a>');
     }
 });
 
@@ -90,25 +111,31 @@ router.post('/:id/add-question', async (req, res) => {
 // CÁC ROUTE CHỈ CÓ /:id PHẢI ĐẶT DƯỚI CÙNG
 // ==========================================
 
-// 6. Xử lý: Cập nhật Quiz (Lệnh PUT)
+// 6. Xử lý: Cập nhật Quiz (Lệnh PUT - Cần Token Admin)
 router.put('/:id', async (req, res) => {
     try {
-        await axiosInstance.put(`/quizzes/${req.params.id}`, req.body);
+        const token = req.cookies.token;
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
+        await axiosInstance.put(`/quizzes/${req.params.id}`, req.body, config);
         res.redirect('/ui/quizzes?updated=true');
     } catch (err) {
         console.error("Lỗi khi cập nhật:", err.message);
-        res.status(500).send('Lỗi khi cập nhật Quiz');
+        res.status(403).send('<h1>Lỗi 403: Bạn không có quyền Admin để sửa Quiz!</h1><a href="/ui/quizzes">Quay lại</a>');
     }
 });
 
-// 7. Xử lý: Xóa Quiz (Lệnh DELETE)
+// 7. Xử lý: Xóa Quiz (Lệnh DELETE - Cần Token Admin)
 router.delete('/:id', async (req, res) => {
     try {
-        await axiosInstance.delete(`/quizzes/${req.params.id}`);
+        const token = req.cookies.token;
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+
+        await axiosInstance.delete(`/quizzes/${req.params.id}`, config);
         res.redirect('/ui/quizzes?deleted=true');
     } catch (err) {
         console.error("Lỗi khi xóa:", err.message);
-        res.status(500).send('Lỗi khi xóa Quiz');
+        res.status(403).send('<h1>Lỗi 403: Bạn không có quyền Admin để xóa Quiz!</h1><a href="/ui/quizzes">Quay lại</a>');
     }
 });
 

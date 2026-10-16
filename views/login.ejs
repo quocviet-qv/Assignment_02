@@ -1,0 +1,35 @@
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow border-primary">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0">Đăng Nhập Hệ Thống</h3>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Bổ sung thông báo Đăng ký thành công -->
+                    <% if (typeof registered !== 'undefined' && registered) { %>
+                        <div class="alert alert-success">Đăng ký thành công! Vui lòng đăng nhập.</div>
+                    <% } %>
+                    <!-- Hiển thị lỗi nếu đăng nhập sai -->
+                    <% if (typeof error !== 'undefined' && error) { %>
+                        <div class="alert alert-danger">Tên đăng nhập hoặc mật khẩu không đúng!</div>
+                    <% } %>
+
+                    <form action="/ui/login" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên đăng nhập (Username)</label>
+                            <input type="text" name="username" class="form-control" required placeholder="Ví dụ: admin_test">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Mật khẩu (Password)</label>
+                            <input type="password" name="password" class="form-control" required placeholder="Nhập mật khẩu...">
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Đăng Nhập</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

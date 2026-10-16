@@ -2,7 +2,7 @@
     <!-- THÔNG BÁO TẠO THÀNH CÔNG -->
     <% if (typeof showSuccess !== 'undefined' && showSuccess) { %>
         <div id="successAlert" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-            <strong>Thành công!</strong> Đã thêm câu hỏi vào bài Quiz.
+            <strong>Thành công!</strong> Đã thêm các câu hỏi vào bài Quiz.
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         <script>
@@ -21,14 +21,15 @@
     <p class="text-muted fs-5"><%= quiz.description %></p>
     <hr class="mb-4">
     
-    <!-- DANH SÁCH CÂU HỎI TRONG QUIZ -->
+    <!-- DANH SÁCH CÂU HỎI HIỆN CÓ TRONG QUIZ -->
     <h4 class="mb-3 fw-bold">Questions in this Quiz:</h4>
     <div class="mb-4">
         <% if (quiz.questions && quiz.questions.length > 0) { %>
             <div class="list-group shadow-sm">
                 <% quiz.questions.forEach(function(q) { %>
                     <div class="list-group-item p-3 text-dark">
-                        <%= q.text || q.questionText || 'Câu hỏi chưa có nội dung' %>
+                        <div class="fw-bold"><%= q.text || q.questionText || 'Câu hỏi chưa có nội dung' %></div>
+                        <small class="text-muted">Tác giả: <%= q.author ? q.author.username : 'Ẩn danh' %></small>
                     </div>
                 <% }); %>
             </div>
@@ -37,23 +38,49 @@
         <% } %>
     </div>
 
-    <!-- KHU VỰC THÊM CÂU HỎI VÀ TÌM KIẾM -->
+    <!-- KHU VỰC THÊM NHIỀU CÂU HỎI VÀ TÌM KIẾM -->
     <div class="card border-primary mb-4 shadow-sm">
         <div class="card-body p-4">
-            <h5 class="card-title text-primary mb-3">Add an existing Question to this Quiz</h5>
+            <h5 class="card-title text-primary mb-3">Add existing Questions to this Quiz</h5>
             
-            <!-- Ô TÌM KIẾM MỚI -->
-            <input type="text" id="searchDropdown" class="form-control mb-3 border-info" placeholder="🔍 Gõ từ khóa để lọc nhanh câu hỏi..." onkeyup="filterDropdown()">
+            <!-- Ô TÌM KIẾM (Đã sửa lại id để dùng cho checkbox) -->
+            <input type="text" id="searchCheckbox" class="form-control mb-3 border-info" placeholder="🔍 Gõ từ khóa để lọc nhanh câu hỏi..." onkeyup="filterCheckboxes()">
 
-            <!-- Form chọn câu hỏi -->
-            <form action="/ui/quizzes/<%= quiz._id %>/add-question" method="POST" class="d-flex gap-2">
-                <select name="questionId" id="questionSelect" class="form-select" required>
-                    <option value="" disabled selected>-- Chọn câu hỏi có sẵn từ kho --</option>
-                    <% allQuestions.forEach(function(question) { %>
-                        <option value="<%= question._id %>"><%= question.text || question.questionText %></option>
-                    <% }); %>
-                </select>
-                <button type="submit" class="btn btn-success px-4">Add</button>
+            <!-- Form chọn nhiều câu hỏi (Checkbox) -->
+            <form action="/ui/quizzes/<%= quiz._id %>/add-question" method="POST">
+                <p class="text-muted fw-bold">Đánh dấu tích (✓) vào các câu hỏi bạn muốn thêm:</p>
+                
+                <div class="list-group mb-3" id="checkboxList" style="max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6;">
+                    <% 
+                    let hasAvailableQuestions = false;
+                    allQuestions.forEach(function(q) { 
+                        // Kiểm tra xem câu hỏi này đã có trong Quiz chưa
+                        const isAlreadyInQuiz = quiz.questions.some(quizQ => quizQ._id.toString() === q._id.toString());
+                        
+                        // Nếu chưa có thì mới hiển thị để chọn
+                        if (!isAlreadyInQuiz) { 
+                            hasAvailableQuestions = true;
+                    %>
+                        <label class="list-group-item d-flex gap-3 align-items-center list-group-item-action checkbox-item" style="cursor: pointer;">
+                            <input class="form-check-input flex-shrink-0 mt-0" type="checkbox" name="questionIds" value="<%= q._id %>" style="width: 1.5em; height: 1.5em;">
+                            <div>
+                                <h6 class="mb-0 text-primary question-text"><%= q.text || q.questionText %></h6>
+                                <small class="text-muted">Tác giả: <%= q.author ? q.author.username : 'Ẩn danh' %></small>
+                            </div>
+                        </label>
+                    <%  } 
+                    }); 
+                    
+                    if (!hasAvailableQuestions) { %>
+                        <div class="p-4 text-center text-muted fw-bold">
+                            Tất cả câu hỏi hiện có trong Ngân hàng đều đã được thêm vào bài Quiz này!
+                        </div>
+                    <% } %>
+                </div>
+                
+                <% if (hasAvailableQuestions) { %>
+                    <button type="submit" class="btn btn-success px-4 fw-bold">Add Selected Questions</button>
+                <% } %>
             </form>
         </div>
     </div>
@@ -65,20 +92,24 @@
     </div>
 </div>
 
-<!-- SCRIPT CHỨC NĂNG LỌC DROPDOWN -->
+<!-- SCRIPT CHỨC NĂNG LỌC CHECKBOX -->
 <script>
-    var selectElement = document.getElementById('questionSelect');
-    var originalOptions = Array.from(selectElement.options).slice(1);
-
-    function filterDropdown() {
-        var keyword = document.getElementById('searchDropdown').value.toLowerCase();
+    function filterCheckboxes() {
+        var keyword = document.getElementById('searchCheckbox').value.toLowerCase();
+        var items = document.getElementsByClassName('checkbox-item');
         
-        selectElement.innerHTML = '<option value="" disabled selected>-- Chọn câu hỏi có sẵn từ kho --</option>';
-        
-        originalOptions.forEach(function(option) {
-            if (option.text.toLowerCase().includes(keyword)) {
-                selectElement.appendChild(option.cloneNode(true));
+        for (var i = 0; i < items.length; i++) {
+            // Lấy nội dung câu hỏi
+            var text = items[i].querySelector('.question-text').innerText.toLowerCase();
+            
+            // Nếu từ khóa xuất hiện trong câu hỏi thì hiện (d-flex), ngược lại thì ẩn (d-none)
+            if (text.includes(keyword)) {
+                items[i].classList.remove('d-none');
+                items[i].classList.add('d-flex');
+            } else {
+                items[i].classList.remove('d-flex');
+                items[i].classList.add('d-none');
             }
-        });
+        }
     }
 </script>
