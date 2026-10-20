@@ -15,7 +15,7 @@ const mongoose = require('mongoose');
 // Các Router API (Lõi của Assignment)
 const quizRouter = require('./routes/quizRouter');
 const questionRouter = require('./routes/questionRouter');
-const usersRouter = require('./routes/users'); // 1. BỔ SUNG ROUTER USERS TẠI ĐÂY
+const usersRouter = require('./routes/users'); 
 
 var app = express();
 
@@ -46,18 +46,32 @@ app.use(methodOverride('_method'));
 app.use('/quizzes', quizRouter);
 app.use('/question', questionRouter);
 app.use('/questions', questionRouter);
-app.use('/users', usersRouter); // 2. KÍCH HOẠT ĐƯỜNG DẪN API /users Ở ĐÂY
+app.use('/users', usersRouter); 
 
-// --- BẮT ĐẦU PHẦN THÊM MỚI ---
-// Đọc token từ Cookie và truyền biến "isLoggedIn" ra toàn bộ giao diện HBS
-app.use(function(req, res, next) {
-    res.locals.isLoggedIn = req.cookies.token ? true : false;
+// --- BẮT ĐẦU PHẦN MIDDLEWARE GIẢI MÃ TOKEN CHO GIAO DIỆN ---
+const jwt = require('jsonwebtoken');
+const SECRET_KEY = '12345-67890-09876-54321'; // Key dùng chung với file authenticate.js
+
+// Đọc token từ Cookie và giải mã để truyền thông tin User ra toàn bộ giao diện HBS
+app.use('/ui', (req, res, next) => {
+    const token = req.cookies.token;
+    if (token) {
+        try {
+            const decoded = jwt.verify(token, SECRET_KEY);
+            res.locals.user = decoded; // Truyền cục data user (chứa username, admin...) xuống View
+        } catch (err) {
+            res.clearCookie('token');
+            res.locals.user = null;
+        }
+    } else {
+        res.locals.user = null;
+    }
     next();
 });
+// --- KẾT THÚC PHẦN MIDDLEWARE ---
 
 const authUIRouter = require('./routes/authUI');
 app.use('/ui', authUIRouter);
-// --- KẾT THÚC PHẦN THÊM MỚI ---
 
 // 4. KHAI BÁO CÁC ROUTER GIAO DIỆN (UI)
 const quizUIRouter = require('./routes/quizUI');

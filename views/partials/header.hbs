@@ -1,22 +1,35 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-    <div class="container">
-        <a class="navbar-brand" href="#">Question Bank Management</a>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="/ui">Question Bank Management</a>
+        
         <div class="collapse navbar-collapse">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="/ui/quizzes">Quizzes Management</a></li>
-                <li class="nav-item"><a class="nav-link" href="/ui/questions">Questions Management</a></li>
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <!-- Chức năng xem danh sách mở cho tất cả mọi người -->
+                <li class="nav-item">
+                    <a class="nav-link" href="/ui/quizzes">Quizzes Management</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/ui/questions">Questions Management</a>
+                </li>
             </ul>
-            
-           <!-- NÚT ĐĂNG NHẬP / ĐĂNG KÝ / ĐĂNG XUẤT -->
-            <div class="d-flex ms-auto gap-2">
-                {{#if isLoggedIn}}
-                    <a href="/ui/logout" class="btn btn-outline-danger fw-bold">Đăng xuất</a>
+
+            <div class="d-flex align-items-center gap-2">
+                <!-- XỬ LÝ ĐIỀU KIỆN HIỂN THỊ THEO VAI TRÒ -->
+                {{#if user}}
+                    <span class="text-light me-3">
+                        Xin chào, <strong>{{user.username}}</strong> 
+                        <!-- Nếu là Admin thì hiện thêm huy hiệu -->
+                        {{#if user.admin}}
+                            <span class="badge bg-danger">Admin</span>
+                        {{/if}}
+                    </span>
+                    <a href="/ui/logout" class="btn btn-outline-light btn-sm">Đăng xuất</a>
                 {{else}}
-                    <a href="/ui/login" class="btn btn-success fw-bold">Đăng nhập</a>
-                    <a href="/ui/signup" class="btn btn-outline-light fw-bold">Đăng ký</a>
+                    <!-- Chưa đăng nhập thì hiện nút Đăng nhập / Đăng ký -->
+                    <a href="/ui/login" class="btn btn-success btn-sm">Đăng nhập</a>
+                    <a href="/ui/signup" class="btn btn-outline-light btn-sm">Đăng ký</a>
                 {{/if}}
             </div>
-
         </div>
     </div>
 </nav>
